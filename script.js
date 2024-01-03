@@ -10,7 +10,7 @@ const maxPaddleY = canvas.height - grid - paddleHeight;
 // скорость платформы
 var paddleSpeed = 6;
 // скорость мяча
-var ballSpeed = 5;
+var ballSpeed = 4;
 
 // описание платформ
 const leftPaddle = {
@@ -21,13 +21,17 @@ const leftPaddle = {
     // на старте платформа не движется
     dy: 0
 };
+const LeftmaxPaddleY = canvas.height - grid - paddleHeight;
 const rightPaddle = {
     x: canvas.width - grid * 3,
     y: canvas.height / 2 - paddleHeight / 2,
     width: grid,
-    height: paddleHeight,
+    height: paddleHeight * 2,
     dy: 0
 };
+// запуск платформы для компьютера
+rightPaddle.dy = paddleSpeed;
+const RightmaxPaddleY = canvas.height - grid - paddleHeight * 2;
 
 // описание мяча
 const ball = {
@@ -62,16 +66,18 @@ function loop() {
     if (leftPaddle.y < grid) {
         // снизу
         leftPaddle.y = grid;
-    } else if (leftPaddle.y > maxPaddleY) {
+    } else if (leftPaddle.y > LeftmaxPaddleY) {
         // сверху
-        leftPaddle.y = maxPaddleY;
+        leftPaddle.y = LeftmaxPaddleY;
     }
     if (rightPaddle.y < grid) {
         // снизу
         rightPaddle.y = grid;
-    } else if (rightPaddle.y > maxPaddleY) {
+        rightPaddle.dy = paddleSpeed;
+    } else if (rightPaddle.y > RightmaxPaddleY) {
         // сверху
-        rightPaddle.y = maxPaddleY;
+        rightPaddle.y = RightmaxPaddleY;
+        rightPaddle.dy = -paddleSpeed;
     }
 
     context.fillStyle = 'white';
