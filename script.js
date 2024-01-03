@@ -22,6 +22,7 @@ const leftPaddle = {
     dy: 0
 };
 const LeftmaxPaddleY = canvas.height - grid - paddleHeight;
+
 const rightPaddle = {
     x: canvas.width - grid * 3,
     y: canvas.height / 2 - paddleHeight / 2,
@@ -29,8 +30,6 @@ const rightPaddle = {
     height: paddleHeight * 2,
     dy: 0
 };
-// запуск платформы для компьютера
-rightPaddle.dy = paddleSpeed;
 const RightmaxPaddleY = canvas.height - grid - paddleHeight * 2;
 
 // описание мяча
@@ -42,6 +41,23 @@ const ball = {
     dx: ballSpeed,
     dy: -ballSpeed
 };
+// цвет мяча
+var ballColor = "#ffffff";
+
+// рекорд и текущие очки
+var record = 0;
+var count = 0
+
+var Storage_size = localStorage.length;
+if (Storage_size > 0) {
+    record = localStorage.getItem('record');
+} else {
+    localStorage.setItem('record', 0);
+}
+
+var secret = false;
+var secret_count = 0;
+
 
 
 // проверка на пересечение объектов
@@ -73,11 +89,9 @@ function loop() {
     if (rightPaddle.y < grid) {
         // снизу
         rightPaddle.y = grid;
-        rightPaddle.dy = paddleSpeed;
     } else if (rightPaddle.y > RightmaxPaddleY) {
         // сверху
         rightPaddle.y = RightmaxPaddleY;
-        rightPaddle.dy = -paddleSpeed;
     }
 
     context.fillStyle = 'white';
@@ -88,6 +102,7 @@ function loop() {
     // продолжение движения мяча
     ball.x += ball.dx;
     ball.y += ball.dy;
+    rightPaddle.dy = ball.dy;
     // при столкновении со стеной
     if (ball.y < grid) {
         // снизу
@@ -101,24 +116,44 @@ function loop() {
     // если мяч вылетел слева или справа
     if ((ball.x < 0 || ball.x > canvas.width) && !ball.resetting) {
         ball.resetting = true;
+        if (count > record) {
+            record = count;
+            localStorage.setItem('record', record);
+        }
+        count = 0;
         // секунда на подготовку
         setTimeout(() => {
             ball.resetting = false;
             ball.x = canvas.width / 2;
             ball.y = canvas.height / 2;
         }, 1000);
+        secret = false;
     }
 
     // стокновения мяча с платформами
     if (collides(ball, leftPaddle)) {
         ball.dx *= -1;
         ball.x = leftPaddle.x + leftPaddle.width;
+        count++;
+        if (count >= 10) {
+            secret = true;
+            if (secret) {
+                secret_count += 1;
+                if (secret_count % 3 == 0) {
+                    if (ball.dx > 0) {ball.dx++;} else {ball.dx--;}
+                    if (ball.dy > 0) {ball.dy++;} else {ball.dy--;}
+                    ballColor = '#' + (Math.random().toString(16) + "000000").substring(2,8).toUpperCase();
+                }
+            }
+        }
+        console.log(ball.dx);
     } else if (collides(ball, rightPaddle)) {
         ball.dx *= -1;
         ball.x = rightPaddle.x - ball.width;
     }
 
     // рисуем мяч
+    context.fillStyle = ballColor;
     context.fillRect(ball.x, ball.y, ball.width, ball.height);
     // стены
     context.fillStyle = 'lightgrey';
@@ -131,12 +166,6 @@ function loop() {
     }
 
     document.addEventListener('keydown', function(e) {
-        if (e.which === 38) {
-            rightPaddle.dy = -paddleSpeed;
-        } else if (e.which === 40) {
-            rightPaddle.dy = paddleSpeed;
-        }
-
         if (e.which === 87) {
             leftPaddle.dy = -paddleSpeed;
         } else if (e.which === 83) {
@@ -144,13 +173,15 @@ function loop() {
         }
     });
     document.addEventListener('keyup', function(e) {
-        if (e.which === 38 || e.which === 40) {
-            rightPaddle.dy = 0;
-        }
         if (e.which === 87 || e.which === 83) {
             leftPaddle.dy = 0;
         }
     });
+
+    context.fillStyle = "#ff0000";
+    context.font = "20pt monospace";
+    context.fillText("Рекорд: " + record, 150, 550);
+    context.fillText(count, 450, 550);
 }
 
 
